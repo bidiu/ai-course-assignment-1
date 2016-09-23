@@ -119,8 +119,8 @@ public class RobotApp {
 						.setParentState(curState);
 				
 				if (!fringe.contains(nextState) && !closed.contains(nextState)) {
-					// performance tweak for BFS, checking whether reach the goal after each SUCK
 					if (nextState.getDirtSet().isEmpty()) {
+						// reach the final state
 						nextState.setTimestamp(System.currentTimeMillis());
 						return traceBackPath(nextState);
 					}
@@ -142,7 +142,6 @@ public class RobotApp {
 							.setParentState(curState);
 					
 					if (!fringe.contains(nextState) && !closed.contains(nextState)) {
-						// we know for sure it's impossible to reach final state currently
 						fringe.offer(nextState);
 					}
 				}
@@ -154,7 +153,6 @@ public class RobotApp {
 						.setActionName(State.ACTION_RIGHT)
 						.setParentState(curState);
 				if (!fringe.contains(nextState) && !closed.contains(nextState)) {
-					// we know for sure it's impossible to reach final state currently
 					fringe.offer(nextState);
 				}
 				
@@ -165,7 +163,6 @@ public class RobotApp {
 						.setActionName(State.ACTION_LEFT)
 						.setParentState(curState);
 				if (!fringe.contains(nextState) && !closed.contains(nextState)) {
-					// we know for sure it's impossible to reach final state currently
 					fringe.offer(nextState);
 				}
 			}
