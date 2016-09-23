@@ -10,12 +10,10 @@ import java.util.Set;
 
 public class RobotApp {
 	
-	// constants for status of each position in the grid
 	public static final int CLEAN = 0;
 	public static final int DIRTY = 1;
 	public static final int OBSTACLE = 2;
 	
-	// TODO remove, just store some inputs temporarily
 	private Pos robotInitPos;				// robot's initial position
 	private Set<Pos> dirtInitSet;			// a set of initial positions of dirt
 	private String robotInitDir;			// robot's initial direction
@@ -53,20 +51,6 @@ public class RobotApp {
 		return path;
 	}
 	
-	/**
-	 * @param gridSize
-	 * 		grid's size
-	 * @param robotPos
-	 * 		robot's initial position
-	 * @param obstacleList
-	 * 		a list of positions of obstacles
-	 * @param dirtList
-	 * 		a list of positions of dirt
-	 * @param direction
-	 * 		robot's initial direction
-	 * @return
-	 * 		generated grid
-	 */
 	public int[][] generateGrid(int gridSize, Pos robotPos, List<Pos> obstacleList, List<Pos> dirtList, String direction) {
 		this.robotInitPos = robotPos;
 		this.robotInitDir = direction;
@@ -103,17 +87,11 @@ public class RobotApp {
 		}
 	}
 	
-	/**
-	 * DFS Algorithm
-	 */
 	private List<State> DFS(int algorithm, int[][] grid) {
 		// TODO
 		return null;
 	}
 	
-	/**
-	 * BFS Algorithm
-	 */
 	private List<State> BFS(int algorithm, int[][] grid) throws CloneNotSupportedException {
 		// instantiate the initial state
 		State curState = new State(robotInitPos, dirtInitSet, robotInitDir, 0, State.ACTION_START, null);
@@ -151,10 +129,6 @@ public class RobotApp {
 					}
 				}
 			}
-			/*
-			 * TODO Ask teacher here, is BFS really blind about which choice is better?
-			 * If so, then the code following should be out of the else block.
-			 */
 			else {
 				// action: MOVE
 				Pos nextRobotPos = curRobotPos.getNeighbor(curState.getDirection());
@@ -194,7 +168,7 @@ public class RobotApp {
 					// we know for sure it's impossible to reach final state currently
 					fringe.offer(nextState);
 				}
-			} // end of else
+			}
 		} // end of while
 		throw new IllegalStateException("Not possible");
 	}

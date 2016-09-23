@@ -5,7 +5,6 @@ package ai.assigment;
  */
 class Pos implements Cloneable {
 	
-	// constants for directions
 	public static final String NORTH = "North";
 	public static final String EAST = "East";
 	public static final String SOUTH = "South";

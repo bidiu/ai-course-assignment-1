@@ -8,13 +8,11 @@ import java.util.Set;
  */
 class State implements Cloneable {
 	
-	// constants for action energy costs
 	public static final int COST_SUCK = 10;
 	public static final int COST_RIGHT = 20;
 	public static final int COST_LEFT = 20;
 	public static final int COST_MOVE = 50;
 	
-	// constants for action name
 	public static final String ACTION_START = "start";
 	public static final String ACTION_SUCK = "suck";
 	public static final String ACTION_MOVE = "move";
