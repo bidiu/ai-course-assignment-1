@@ -8,22 +8,37 @@ import java.util.Set;
  */
 class State implements Cloneable {
 	
-	private Pos robotPos;			// current position of the robot
-	private Set<Pos> dirtSet;		// a set of positions of dirt not yet been cleaned
+	// constants for action energy costs
+	public static final int COST_SUCK = 10;
+	public static final int COST_RIGHT = 20;
+	public static final int COST_LEFT = 20;
+	public static final int COST_MOVE = 50;
+	
+	// constants for action name
+	public static final String ACTION_START = "start";
+	public static final String ACTION_SUCK = "suck";
+	public static final String ACTION_MOVE = "move";
+	public static final String ACTION_RIGHT = "right";
+	public static final String ACTION_LEFT = "left";
+	
+	private Pos robotPos;				// current position of the robot
+	private Set<Pos> dirtSet;			// a set of positions of dirt not yet been cleaned
+	private String direction;			// current robot's direction
 	
 	// following doesn't belong to the state representation!
-	private int direction;			// current robot's direction
-	private int cost;				// current accumulative cost
+	private int cost;					// current accumulative cost
+	private String actionName;			// by doing what action to arrive this state, just for printing
 	private State parentState;
 	
 	public State() {
 	}
 	
-	public State(Pos robotPos, Set<Pos> dirtSet, int direction, int cost, State parentState) {
+	public State(Pos robotPos, Set<Pos> dirtSet, String direction, int cost, String actionName, State parentState) {
 		this.robotPos = robotPos;
 		this.dirtSet = dirtSet;
 		this.direction = direction;
 		this.cost = cost;
+		this.actionName = actionName;
 		this.parentState = parentState;
 	}
 	
@@ -31,43 +46,90 @@ class State implements Cloneable {
 	public Pos getRobotPos() {
 		return robotPos;
 	}
-	public void setRobotPos(Pos robotPos) {
+	public State setRobotPos(Pos robotPos) {
 		this.robotPos = robotPos;
+		return this;
 	}
 	public Set<Pos> getDirtSet() {
 		return dirtSet;
 	}
-	public void setDirtSet(Set<Pos> dirtSet) {
+	public State setDirtSet(Set<Pos> dirtSet) {
 		this.dirtSet = dirtSet;
+		return this;
 	}
-	public int getDirection() {
+	public String getDirection() {
 		return direction;
 	}
-	public void setDirection(int direction) {
+	public State setDirection(String direction) {
 		this.direction = direction;
+		return this;
 	}
 	public int getCost() {
 		return cost;
 	}
-	public void setCost(int cost) {
+	public State setCost(int cost) {
 		this.cost = cost;
+		return this;
+	}
+	public String getActionName() {
+		return actionName;
+	}
+	public State setActionName(String actionName) {
+		this.actionName = actionName;
+		return this;
 	}
 	public State getParentState() {
 		return parentState;
 	}
-	public void setParentState(State parentState) {
+	public State setParentState(State parentState) {
 		this.parentState = parentState;
+		return this;
+	}
+	
+	public State turnLeft() {
+		switch (direction) {
+		case Pos.NORTH:
+			direction = Pos.WEST;
+			break;
+		case Pos.EAST:
+			direction = Pos.NORTH;
+			break;
+		case Pos.SOUTH:
+			direction = Pos.EAST;
+			break;
+		case Pos.WEST:
+			direction = Pos.SOUTH;
+		}
+		return this;
+	}
+	
+	public State turnRight() {
+		switch (direction) {
+		case Pos.NORTH:
+			direction = Pos.EAST;
+			break;
+		case Pos.EAST:
+			direction = Pos.SOUTH;
+			break;
+		case Pos.SOUTH:
+			direction = Pos.WEST;
+			break;
+		case Pos.WEST:
+			direction = Pos.NORTH;
+		}
+		return this;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + ((direction == null) ? 0 : direction.hashCode());
 		result = prime * result + ((dirtSet == null) ? 0 : dirtSet.hashCode());
 		result = prime * result + ((robotPos == null) ? 0 : robotPos.hashCode());
 		return result;
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
@@ -80,43 +142,54 @@ class State implements Cloneable {
 			return false;
 		}
 		State other = (State) obj;
+		if (direction == null) {
+			if (other.direction != null) {
+				return false;
+			}
+		} else if (!direction.equals(other.direction)) {
+			return false;
+		}
 		if (dirtSet == null) {
 			if (other.dirtSet != null) {
 				return false;
 			}
-		}
-		else if (!dirtSet.equals(other.dirtSet)) {
+		} else if (!dirtSet.equals(other.dirtSet)) {
 			return false;
 		}
 		if (robotPos == null) {
 			if (other.robotPos != null) {
 				return false;
 			}
-		}
-		else if (!robotPos.equals(other.robotPos)) {
+		} else if (!robotPos.equals(other.robotPos)) {
 			return false;
 		}
 		return true;
 	}
-	
+
 	/*
-	 * This is a deep copy except for attribute "parentState" being null.
+	 * This is a deep copy except for attributes "actionName" and "parentState" being null.
 	 */
 	@Override
 	protected Object clone() throws CloneNotSupportedException {
-		State cloned = new State();
-		cloned.setRobotPos((Pos) robotPos.clone());
+		State cloned = (State) super.clone();
+		cloned.setRobotPos(new Pos(robotPos.x, robotPos.y));
 		
-		Set<Pos> clonedDirtSet = new HashSet<Pos>();
-		for (Pos dirtPos : dirtSet) {
-			clonedDirtSet.add((Pos) dirtPos.clone());
+		if (dirtSet != null) {
+			Set<Pos> clonedDirtSet = new HashSet<Pos>();
+			for (Pos dirtPos : dirtSet) {
+				clonedDirtSet.add(new Pos(dirtPos.x, dirtPos.y));
+			}
+			cloned.setDirtSet(clonedDirtSet);
 		}
-		cloned.setDirtSet(clonedDirtSet);
 		
-		cloned.setDirection(direction);
-		cloned.setCost(cost);
+		cloned.setActionName(null);
 		cloned.setParentState(null);
-		return clone();
+		return cloned;
+	}
+	
+	@Override
+	public String toString() {
+		return robotPos + ", " + direction + ", " + actionName;
 	}
 	
 }

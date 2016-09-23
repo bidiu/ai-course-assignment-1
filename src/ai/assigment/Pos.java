@@ -1,18 +1,15 @@
 package ai.assigment;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * the position, i.e., coordinate - (x, y)
  */
 class Pos implements Cloneable {
 	
 	// constants for directions
-	public static final int NORTH = 0;
-	public static final int EAST = 1;
-	public static final int SOUTH = 2;
-	public static final int WEST = 3;
+	public static final String NORTH = "North";
+	public static final String EAST = "East";
+	public static final String SOUTH = "South";
+	public static final String WEST = "West";
 	
 	int x;
 	int y;
@@ -22,53 +19,19 @@ class Pos implements Cloneable {
 		this.y = y;
 	}
 	
-	public int getNeighborDirection(Pos neighbor) {
-		if (x == neighbor.x) {
-			if (y + 1 == neighbor.y) {
-				return EAST;
-			}
-			else if (y - 1 == neighbor.y) {
-				return WEST;
-			}
-			else {
-				throw new IllegalArgumentException("they are not neighbors");
-			}
+	public Pos getNeighbor(String direction) {
+		switch (direction) {
+		case NORTH:
+			return new Pos(x - 1, y);
+		case EAST:
+			return new Pos(x, y + 1);
+		case SOUTH:
+			return new Pos(x + 1, y);
+		case WEST:
+			return new Pos(x, y - 1);
+		default:
+			throw new IllegalArgumentException();
 		}
-		else if (y == neighbor.y) {
-			if (x + 1 == neighbor.x) {
-				return SOUTH;
-			}
-			else if (x - 1 == neighbor.x) {
-				return NORTH;
-			}
-			else {
-				throw new IllegalArgumentException("they are not neighbors");
-			}
-		}
-		else {
-			throw new IllegalArgumentException("they are not neighbors");
-		}
-	}
-	
-	public Pos getNorthNeighbor() {
-		return new Pos(x - 1, y);
-	}
-	public Pos getSouthNeighbor() {
-		return new Pos(x + 1, y);
-	}
-	public Pos getWestNeighbor() {
-		return new Pos(x, y - 1);
-	}
-	public Pos getEastNeighbor() {
-		return new Pos(x, y + 1);
-	}
-	public List<Pos> get4Neighbors() {
-		List<Pos> neighbors = new ArrayList<Pos>();
-		neighbors.add(getNorthNeighbor());
-		neighbors.add(getSouthNeighbor());
-		neighbors.add(getWestNeighbor());
-		neighbors.add(getEastNeighbor());
-		return neighbors;
 	}
 	
 	@Override
@@ -102,8 +65,8 @@ class Pos implements Cloneable {
 	}
 	
 	@Override
-	protected Object clone() throws CloneNotSupportedException {
-		return new Pos(x, y);
+	public String toString() {
+		return "pos(" + x + ", " + y + ")";
 	}
 	
 }

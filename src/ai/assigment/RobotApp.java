@@ -1,5 +1,7 @@
 package ai.assigment;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -7,7 +9,7 @@ import java.util.Queue;
 import java.util.Set;
 
 /**
- * TODO state should take direction into account
+ * TODO reverse x and y
  * 
  * @author sunhe
  * @date Sep 22, 2016
@@ -16,22 +18,16 @@ public class RobotApp {
 	
 	// constants for status of each position in the grid
 	public static final int CLEAN = 0;
-	public static final int OBSTACLE = 1;
-	public static final int DIRTY = 2;
+	public static final int DIRTY = 1;
+	public static final int OBSTACLE = 2;
 	
-	// constants for movement energy costs
-	public static final int COST_SUCK = 10;
-	public static final int COST_RIGHT = 20;
-	public static final int COST_LEFT = 20;
-	public static final int COST_FORWARD = 50;
-	
-	// just store some inputs temporarily
-	private Pos robotInitPos;			// robot's initial position
-	private Set<Pos> dirtInitSet;		// a set of initial positions of dirt
-	private int robotInitDir;			// robot's initial direction
+	// TODO remove, just store some inputs temporarily
+	private Pos robotInitPos;				// robot's initial position
+	private Set<Pos> dirtInitSet;			// a set of initial positions of dirt
+	private String robotInitDir;			// robot's initial direction
 	
 	/**
-	 * update the current state (several positions of dirt) to grid
+	 * update the current state (only the current positions of dirt) to grid
 	 */
 	private void updateGrid(State state, int[][] grid) {
 		for (int x = 1; x < grid.length; x++) {
@@ -53,12 +49,19 @@ public class RobotApp {
 	 * trace back the path along the state chain
 	 */
 	private List<State> traceBackPath(State finalState) {
-		// TODO
-		return null;
+		List<State> path = new LinkedList<State>();
+		State s = finalState;
+		while (s != null) {
+			path.add(s);
+			s = s.getParentState();
+		}
+		Collections.reverse(path);
+		return path;
 	}
 	
 	/**
 	 * @param gridSize
+	 * 		grid's size
 	 * @param robotPos
 	 * 		robot's initial position
 	 * @param obstacleList
@@ -70,7 +73,7 @@ public class RobotApp {
 	 * @return
 	 * 		generated grid
 	 */
-	public int[][] generateGrid(int gridSize, Pos robotPos, List<Pos> obstacleList, List<Pos> dirtList, int direction) {
+	public int[][] generateGrid(int gridSize, Pos robotPos, List<Pos> obstacleList, List<Pos> dirtList, String direction) {
 		this.robotInitPos = robotPos;
 		this.robotInitDir = direction;
 		dirtInitSet = new HashSet<Pos>(dirtList);
@@ -85,18 +88,17 @@ public class RobotApp {
 		return grid;
 	}
 	
-	public void search(int algorithm, int[][] grid) {
+	public List<State> search(int algorithm, int[][] grid) {
 		try {
 			if (algorithm == 1) {
-				// go DFS
-				dfs(algorithm, grid);
+				return DFS(algorithm, grid);
 			}
 			else if (algorithm == 2) {
-				// go BFS
-				bfs(algorithm, grid);
+				return BFS(algorithm, grid);
 			}
 			else if (algorithm == 3) {
 				// TODO
+				return null;
 			}
 			else {
 				throw new IllegalArgumentException();
@@ -107,13 +109,20 @@ public class RobotApp {
 		}
 	}
 	
-	private void dfs(int algorithm, int[][] grid) {
-		
+	/**
+	 * DFS Algorithm
+	 */
+	private List<State> DFS(int algorithm, int[][] grid) {
+		// TODO
+		return null;
 	}
 	
-	private List<State> bfs(int algorithm, int[][] grid) throws CloneNotSupportedException {
+	/**
+	 * BFS Algorithm
+	 */
+	private List<State> BFS(int algorithm, int[][] grid) throws CloneNotSupportedException {
 		// instantiate the initial state
-		State curState = new State(robotInitPos, dirtInitSet, robotInitDir, 0, null);
+		State curState = new State(robotInitPos, dirtInitSet, robotInitDir, 0, State.ACTION_START, null);
 		if (curState.getDirtSet().isEmpty()) {
 			// the initial state is the final one
 			return traceBackPath(curState);
@@ -129,11 +138,12 @@ public class RobotApp {
 			Pos curRobotPos = curState.getRobotPos();
 			
 			if (grid[curRobotPos.x][curRobotPos.y] == DIRTY) {
-				// should SUCK, create a new state
+				// action: SUCK
 				State nextState = (State) curState.clone();
 				nextState.getDirtSet().remove(curRobotPos);
-				nextState.setCost(nextState.getCost() + COST_SUCK);
-				nextState.setParentState(curState);
+				nextState.setCost(nextState.getCost() + State.COST_SUCK)
+						.setActionName(State.ACTION_SUCK)
+						.setParentState(curState);
 				
 				if (!fringe.contains(nextState) && !closed.contains(nextState)) {
 					// performance tweak for BFS, checking whether reach the goal after each SUCK
@@ -146,31 +156,75 @@ public class RobotApp {
 				}
 			}
 			/*
-			 * ask teacher here, is BFS really blind about which choice is better?
-			 * If is, then the code following should be out of the else block.
+			 * TODO Ask teacher here, is BFS really blind about which choice is better?
+			 * If so, then the code following should be out of the else block.
 			 */
 			else {
-				// should GO AROUND
-				for (Pos neighbor : curRobotPos.get4Neighbors()) {
-					if (neighbor.x < 1 || neighbor.x > grid.length || 
-							neighbor.y < 1 || neighbor.y > grid.length || 
-							grid[neighbor.x][neighbor.y] == OBSTACLE) {
-						continue;
-					}
+				// action: MOVE
+				Pos nextRobotPos = curRobotPos.getNeighbor(curState.getDirection());
+				if (nextRobotPos.x >= 1 && nextRobotPos.x < grid.length 
+						&& nextRobotPos.y >= 1 && nextRobotPos.y < grid.length 
+						&& grid[nextRobotPos.x][nextRobotPos.y] != OBSTACLE) {
 					State nextState = (State) curState.clone();
+					nextState.setRobotPos(nextRobotPos)
+							.setCost(nextState.getCost() + State.COST_MOVE)
+							.setActionName(State.ACTION_MOVE)
+							.setParentState(curState);
 					
+					if (!fringe.contains(nextState) && !closed.contains(nextState)) {
+						// we know for sure it's impossible to reach final state currently
+						fringe.offer(nextState);
+					}
 				}
-			}
-		}
+				
+				// action: RIGHT
+				State nextState = (State) curState.clone();
+				nextState.turnRight()
+						.setCost(nextState.getCost() + State.COST_RIGHT)
+						.setActionName(State.ACTION_RIGHT)
+						.setParentState(curState);
+				if (!fringe.contains(nextState) && !closed.contains(nextState)) {
+					// we know for sure it's impossible to reach final state currently
+					fringe.offer(nextState);
+				}
+				
+				// action: LEFT
+				nextState = (State) curState.clone();
+				nextState.turnLeft()
+						.setCost(nextState.getCost() + State.COST_LEFT)
+						.setActionName(State.ACTION_LEFT)
+						.setParentState(curState);
+				if (!fringe.contains(nextState) && !closed.contains(nextState)) {
+					// we know for sure it's impossible to reach final state currently
+					fringe.offer(nextState);
+				}
+			} // end of else
+		} // end of while
 		throw new IllegalStateException("Not possible");
 	}
 	
 	public void printSolution(List<State> path) {
-		// TODO
+		for (State node : path) {
+			System.out.println(node);
+		}
 	}
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws CloneNotSupportedException {
+		List<Pos> obstacleList = new ArrayList<Pos>();
+		obstacleList.add(new Pos(2, 2));
+		obstacleList.add(new Pos(2, 3));
+		obstacleList.add(new Pos(3, 2));
 		
+		List<Pos> dirtList = new ArrayList<Pos>();
+		dirtList.add(new Pos(1, 2));
+		dirtList.add(new Pos(2, 1));
+		dirtList.add(new Pos(3, 3));
+		dirtList.add(new Pos(4, 2));
+		
+		RobotApp app = new RobotApp();
+		int[][] grid = app.generateGrid(4, new Pos(3, 4), obstacleList, dirtList, Pos.WEST);
+		List<State> path = app.search(2, grid);
+		app.printSolution(path);
 	}
 	
 }
