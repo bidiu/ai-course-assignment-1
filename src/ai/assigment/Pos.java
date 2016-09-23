@@ -22,13 +22,13 @@ class Pos implements Cloneable {
 	public Pos getNeighbor(String direction) {
 		switch (direction) {
 		case NORTH:
-			return new Pos(x - 1, y);
-		case EAST:
-			return new Pos(x, y + 1);
-		case SOUTH:
-			return new Pos(x + 1, y);
-		case WEST:
 			return new Pos(x, y - 1);
+		case EAST:
+			return new Pos(x + 1, y);
+		case SOUTH:
+			return new Pos(x, y + 1);
+		case WEST:
+			return new Pos(x - 1, y);
 		default:
 			throw new IllegalArgumentException();
 		}

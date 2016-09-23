@@ -29,6 +29,7 @@ class State implements Cloneable {
 	private int cost;					// current accumulative cost
 	private String actionName;			// by doing what action to arrive this state, just for printing
 	private State parentState;
+	private long timestamp;				// only initial and final states have
 	
 	public State() {
 	}
@@ -85,7 +86,14 @@ class State implements Cloneable {
 		this.parentState = parentState;
 		return this;
 	}
-	
+	public long getTimestamp() {
+		return timestamp;
+	}
+	public State setTimestamp(long timestamp) {
+		this.timestamp = timestamp;
+		return this;
+	}
+
 	public State turnLeft() {
 		switch (direction) {
 		case Pos.NORTH:
@@ -167,7 +175,8 @@ class State implements Cloneable {
 	}
 
 	/*
-	 * This is a deep copy except for attributes "actionName" and "parentState" being null.
+	 * This is a deep copy except for attributes "actionName", "parentState" 
+	 * and "timestamp" being null or 0.
 	 */
 	@Override
 	protected Object clone() throws CloneNotSupportedException {
@@ -184,6 +193,7 @@ class State implements Cloneable {
 		
 		cloned.setActionName(null);
 		cloned.setParentState(null);
+		cloned.setTimestamp(0L);
 		return cloned;
 	}
 	

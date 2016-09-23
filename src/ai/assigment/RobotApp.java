@@ -8,12 +8,6 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
-/**
- * TODO reverse x and y
- * 
- * @author sunhe
- * @date Sep 22, 2016
- */
 public class RobotApp {
 	
 	// constants for status of each position in the grid
@@ -30,16 +24,16 @@ public class RobotApp {
 	 * update the current state (only the current positions of dirt) to grid
 	 */
 	private void updateGrid(State state, int[][] grid) {
-		for (int x = 1; x < grid.length; x++) {
-			for (int y = 1; y < grid.length; y++) {
+		for (int y = 1; y < grid.length; y++) {
+			for (int x = 1; x < grid.length; x++) {
 				Pos position = new Pos(x, y);
 				if (state.getDirtSet().contains(position)) {
 					// current position should be dirty
-					grid[x][y] = DIRTY;
+					grid[y][x] = DIRTY;
 				}
-				else {
+				else if (grid[y][x] != OBSTACLE) {
 					// current position should be clean
-					grid[x][y] = CLEAN;
+					grid[y][x] = CLEAN;
 				}
 			}
 		}
@@ -80,10 +74,10 @@ public class RobotApp {
 		
 		int[][] grid = new int[gridSize + 1][gridSize + 1];
 		for (Pos pos : obstacleList) {
-			grid[pos.x][pos.y] = OBSTACLE;
+			grid[pos.y][pos.x] = OBSTACLE;
 		}
 		for (Pos pos : dirtList) {
-			grid[pos.x][pos.y] = DIRTY;
+			grid[pos.y][pos.x] = DIRTY;
 		}
 		return grid;
 	}
@@ -123,6 +117,7 @@ public class RobotApp {
 	private List<State> BFS(int algorithm, int[][] grid) throws CloneNotSupportedException {
 		// instantiate the initial state
 		State curState = new State(robotInitPos, dirtInitSet, robotInitDir, 0, State.ACTION_START, null);
+		curState.setTimestamp(System.currentTimeMillis());
 		if (curState.getDirtSet().isEmpty()) {
 			// the initial state is the final one
 			return traceBackPath(curState);
@@ -137,7 +132,7 @@ public class RobotApp {
 			updateGrid(curState, grid);
 			Pos curRobotPos = curState.getRobotPos();
 			
-			if (grid[curRobotPos.x][curRobotPos.y] == DIRTY) {
+			if (grid[curRobotPos.y][curRobotPos.x] == DIRTY) {
 				// action: SUCK
 				State nextState = (State) curState.clone();
 				nextState.getDirtSet().remove(curRobotPos);
@@ -148,6 +143,7 @@ public class RobotApp {
 				if (!fringe.contains(nextState) && !closed.contains(nextState)) {
 					// performance tweak for BFS, checking whether reach the goal after each SUCK
 					if (nextState.getDirtSet().isEmpty()) {
+						nextState.setTimestamp(System.currentTimeMillis());
 						return traceBackPath(nextState);
 					}
 					else {
@@ -164,7 +160,7 @@ public class RobotApp {
 				Pos nextRobotPos = curRobotPos.getNeighbor(curState.getDirection());
 				if (nextRobotPos.x >= 1 && nextRobotPos.x < grid.length 
 						&& nextRobotPos.y >= 1 && nextRobotPos.y < grid.length 
-						&& grid[nextRobotPos.x][nextRobotPos.y] != OBSTACLE) {
+						&& grid[nextRobotPos.y][nextRobotPos.x] != OBSTACLE) {
 					State nextState = (State) curState.clone();
 					nextState.setRobotPos(nextRobotPos)
 							.setCost(nextState.getCost() + State.COST_MOVE)
@@ -204,9 +200,15 @@ public class RobotApp {
 	}
 	
 	public void printSolution(List<State> path) {
+		State initState = path.get(0);
+		State finalState = path.get(path.size() - 1);
+		
 		for (State node : path) {
 			System.out.println(node);
 		}
+		System.out.println();
+		System.out.println("total cost: " + finalState.getCost());
+		System.out.println("Time: " + (finalState.getTimestamp() - initState.getTimestamp()) + " ms");
 	}
 	
 	public static void main(String[] args) throws CloneNotSupportedException {
@@ -218,11 +220,11 @@ public class RobotApp {
 		List<Pos> dirtList = new ArrayList<Pos>();
 		dirtList.add(new Pos(1, 2));
 		dirtList.add(new Pos(2, 1));
+		dirtList.add(new Pos(2, 4));
 		dirtList.add(new Pos(3, 3));
-		dirtList.add(new Pos(4, 2));
 		
 		RobotApp app = new RobotApp();
-		int[][] grid = app.generateGrid(4, new Pos(3, 4), obstacleList, dirtList, Pos.WEST);
+		int[][] grid = app.generateGrid(4, new Pos(4, 3), obstacleList, dirtList, Pos.WEST);
 		List<State> path = app.search(2, grid);
 		app.printSolution(path);
 	}
