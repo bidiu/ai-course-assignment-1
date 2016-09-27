@@ -15,8 +15,10 @@ import java.util.Queue;
 import java.util.Set;
 
 /**
- * TODO is it okay to tweak unblinded search? 
  * TODO depth
+ * TODO consistent!!!
+ * TODO variable for storing initial state
+ * TODO is it okay to tweak unblinded search? 
  * 
  * @author sunhe, myan
  * @date Sep 22, 2016
@@ -72,7 +74,7 @@ public class RobotApp {
 	}
 	
 	/**
-	 * trace back the path along the state chain to the GOAL
+	 * trace back the path of the state chain, from the start to the GOAL
 	 */
 	private List<State> traceBackPath(State finalState) {
 		List<State> path = new LinkedList<State>();
@@ -82,11 +84,12 @@ public class RobotApp {
 			s = s.getParentState();
 		}
 		Collections.reverse(path);
-		return path;
+		return Collections.unmodifiableList(path);
 	}
 	
 	/**
-	 * the heuristic function
+	 * the heuristic function, 
+	 * and it should be consistent.
 	 */
 	private int h(State state) {
 		int robotX = state.getRobotPos().x;
@@ -160,9 +163,7 @@ public class RobotApp {
 			}
 		}
 		
-		// return: 
-		// the estimate cost of cleaning all dirt from the current state, 
-		// plus the real cost from initial state to the current state
+		// return the estimate cost of cleaning all dirt from the current state
 		return moveCost + min(turnCostX, turnCostY) 
 				+ state.getDirtSet().size() * COST_SUCK + state.getCost();
 	}
@@ -336,7 +337,7 @@ public class RobotApp {
 		// instantiate the initial state
 		State curState = new State(robotInitPos, initDirtSet, robotInitDir, 0, State.ACTION_START, null);
 		curState.setTimestamp(System.currentTimeMillis());
-		curState.setHeuristicValue(h(curState));
+		curState.setF(0 + h(curState));
 		if (curState.getDirtSet().isEmpty()) {
 			// the initial state is the final one
 			return traceBackPath(curState);
@@ -345,7 +346,7 @@ public class RobotApp {
 		Queue<State> fringe = new PriorityQueue<State>(new Comparator<State>() {
 			
 			public int compare(State state1, State state2) {
-				return state1.getHeuristicValue() - state2.getHeuristicValue();
+				return state1.getF() - state2.getF();
 			};
 		});
 		fringe.offer(curState);
@@ -363,7 +364,7 @@ public class RobotApp {
 				nextState.setCost(nextState.getCost() + COST_SUCK)
 						.setActionName(State.ACTION_SUCK)
 						.setParentState(curState)
-						.setHeuristicValue(h(nextState));
+						.setF(nextState.getCost() + h(nextState));
 				
 				if (!fringe.contains(nextState) && !closed.contains(nextState)) {
 					if (nextState.getDirtSet().isEmpty()) {
@@ -387,7 +388,7 @@ public class RobotApp {
 						.setCost(nextState.getCost() + COST_MOVE)
 						.setActionName(State.ACTION_MOVE)
 						.setParentState(curState)
-						.setHeuristicValue(h(nextState));
+						.setF(nextState.getCost() + h(nextState));
 				
 				if (!fringe.contains(nextState) && !closed.contains(nextState)) {
 					fringe.offer(nextState);
@@ -400,7 +401,7 @@ public class RobotApp {
 					.setCost(nextState.getCost() + COST_TURN)
 					.setActionName(State.ACTION_RIGHT)
 					.setParentState(curState)
-					.setHeuristicValue(h(nextState));
+					.setF(nextState.getCost() + h(nextState));
 			if (!fringe.contains(nextState) && !closed.contains(nextState)) {
 				fringe.offer(nextState);
 			}
@@ -411,7 +412,7 @@ public class RobotApp {
 					.setCost(nextState.getCost() + COST_TURN)
 					.setActionName(State.ACTION_LEFT)
 					.setParentState(curState)
-					.setHeuristicValue(h(nextState));
+					.setF(nextState.getCost() + h(nextState));
 			if (!fringe.contains(nextState) && !closed.contains(nextState)) {
 				fringe.offer(nextState);
 			}
@@ -451,6 +452,12 @@ public class RobotApp {
 		System.out.println("Time: " + (finalState.getTimestamp() - initState.getTimestamp()) + " ms");
 	}
 	
+	/**
+	 * Compiled and tested on Java 8.
+	 * 
+	 * @author sunhe, myan
+	 * @date Sep 22, 2016
+	 */
 	public static void main(String[] args) throws CloneNotSupportedException {
 		List<Pos> obstacleList = new ArrayList<Pos>();
 		obstacleList.add(new Pos(2, 2));

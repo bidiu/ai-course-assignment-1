@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * state representation
+ * State representation, or say, Node
  */
 public class State implements Cloneable {
 	
@@ -24,7 +24,7 @@ public class State implements Cloneable {
 	private String actionName;			// just for print
 	private State parentState;
 	private long timestamp;				// only initial and final states have
-	private int heuristicValue;			// heuristic value of this state
+	private int f;						// f(n) = g(n) + h(n), n == this
 	
 	public State() {
 	}
@@ -88,11 +88,11 @@ public class State implements Cloneable {
 		this.timestamp = timestamp;
 		return this;
 	}
-	public int getHeuristicValue() {
-		return heuristicValue;
+	public int getF() {
+		return f;
 	}
-	public void setHeuristicValue(int heuristicValue) {
-		this.heuristicValue = heuristicValue;
+	public void setF(int f) {
+		this.f = f;
 	}
 
 	public State turnLeft() {
