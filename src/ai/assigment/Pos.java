@@ -1,9 +1,9 @@
 package ai.assigment;
 
 /**
- * the position, i.e., coordinate - (x, y)
+ * the position, or say, coordinate, i.e., (x, y)
  */
-class Pos implements Cloneable {
+public class Pos implements Cloneable {
 	
 	public static final String NORTH = "North";
 	public static final String EAST = "East";
@@ -18,6 +18,9 @@ class Pos implements Cloneable {
 		this.y = y;
 	}
 	
+	/**
+	 * get an adjacent neighbor of a specific direction
+	 */
 	public Pos getNeighbor(String direction) {
 		switch (direction) {
 		case NORTH:
@@ -63,6 +66,7 @@ class Pos implements Cloneable {
 		return true;
 	}
 	
+	// for print
 	@Override
 	public String toString() {
 		return "pos(" + x + ", " + y + ")";

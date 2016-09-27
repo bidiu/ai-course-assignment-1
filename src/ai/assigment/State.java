@@ -6,8 +6,9 @@ import java.util.Set;
 /**
  * state representation
  */
-class State implements Cloneable {
+public class State implements Cloneable {
 	
+	// for print
 	public static final String ACTION_START = "start";
 	public static final String ACTION_SUCK = "suck";
 	public static final String ACTION_MOVE = "move";
@@ -15,12 +16,12 @@ class State implements Cloneable {
 	public static final String ACTION_LEFT = "left";
 	
 	private Pos robotPos;				// current position of the robot
-	private Set<Pos> dirtSet;			// a set of positions of dirt not yet been cleaned
 	private String direction;			// current robot's direction
+	private Set<Pos> dirtSet;			// a set of positions of dirt not yet been cleaned
 	
-	// following doesn't belong to the state representation!
-	private int cost;					// current accumulative cost
-	private String actionName;			// by doing what action to arrive this state, just for printing
+	// note, following doesn't belong to the state representation!
+	private int cost;					// current accumulative real cost
+	private String actionName;			// just for print
 	private State parentState;
 	private long timestamp;				// only initial and final states have
 	private int heuristicValue;			// heuristic value of this state
@@ -175,7 +176,7 @@ class State implements Cloneable {
 	}
 
 	/*
-	 * This is a deep copy except for attributes "actionName", "parentState" 
+	 * This is a deep copy except for fields "actionName", "parentState" 
 	 * and "timestamp" being null or 0.
 	 */
 	@Override
@@ -197,6 +198,7 @@ class State implements Cloneable {
 		return cloned;
 	}
 	
+	// for print
 	@Override
 	public String toString() {
 		return robotPos + ", " + direction + ", " + actionName;
