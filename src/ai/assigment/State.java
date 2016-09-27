@@ -8,11 +8,6 @@ import java.util.Set;
  */
 class State implements Cloneable {
 	
-	public static final int COST_SUCK = 10;
-	public static final int COST_RIGHT = 20;
-	public static final int COST_LEFT = 20;
-	public static final int COST_MOVE = 50;
-	
 	public static final String ACTION_START = "start";
 	public static final String ACTION_SUCK = "suck";
 	public static final String ACTION_MOVE = "move";
@@ -28,6 +23,7 @@ class State implements Cloneable {
 	private String actionName;			// by doing what action to arrive this state, just for printing
 	private State parentState;
 	private long timestamp;				// only initial and final states have
+	private int heuristicValue;			// heuristic value of this state
 	
 	public State() {
 	}
@@ -90,6 +86,12 @@ class State implements Cloneable {
 	public State setTimestamp(long timestamp) {
 		this.timestamp = timestamp;
 		return this;
+	}
+	public int getHeuristicValue() {
+		return heuristicValue;
+	}
+	public void setHeuristicValue(int heuristicValue) {
+		this.heuristicValue = heuristicValue;
 	}
 
 	public State turnLeft() {

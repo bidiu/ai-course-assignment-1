@@ -1,14 +1,24 @@
 package ai.assigment;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+import static java.lang.Math.abs;
+
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
 
 public class RobotApp {
+	
+	public static final int COST_SUCK = 10;
+	public static final int COST_TURN = 20;
+	public static final int COST_MOVE = 50;
 	
 	public static final int CLEAN = 0;
 	public static final int DIRTY = 1;
@@ -51,6 +61,88 @@ public class RobotApp {
 		return path;
 	}
 	
+	/**
+	 * the heuristic function
+	 */
+	private int h(State state) {
+		int robotX = state.getRobotPos().x;
+		int robotY = state.getRobotPos().y;
+		String robotDir = state.getDirection();
+		int mostWest = -1, mostEast = -1, mostNorth = -1, mostSouth = -1;
+		int moveCost = 0, turnCostX = 0, turnCostY = 0;
+		
+		for (Pos dirtPos : state.getDirtSet()) {
+			if (mostWest == -1 || dirtPos.x < mostWest) {
+				mostWest = dirtPos.x;
+			}
+			if (mostEast == -1 || dirtPos.x > mostEast) {
+				mostEast = dirtPos.x;
+			}
+			if (mostNorth == -1 || dirtPos.y < mostNorth) {
+				mostNorth = dirtPos.y;
+			}
+			if (mostSouth == -1 || dirtPos.y > mostSouth) {
+				mostSouth = dirtPos.y;
+			}
+		}
+		
+		// think about X axis
+		if ((mostWest - robotX) * (mostEast - robotX) >= 0) {
+			moveCost += max(abs(mostWest - robotX), abs(mostEast - robotX)) * COST_MOVE;
+			if (mostWest != mostEast) {
+				if (robotDir.equals(Pos.NORTH) || robotDir.equals(Pos.SOUTH)) {
+					turnCostX += 1 * COST_TURN;
+				}
+				else if (robotDir.equals(Pos.WEST) && mostWest >= robotX 
+						|| robotDir.equals(Pos.EAST) && mostEast <= robotX) {
+					turnCostX += 2 * COST_TURN;
+				}
+			}
+		}
+		else {
+			int stepWest = abs(mostWest - robotX);
+			int stepEast = abs(mostEast - robotX);
+			moveCost += (min(stepWest, stepEast) * 2 + max(stepWest, stepEast)) * COST_MOVE;
+			if (robotDir.equals(Pos.NORTH) || robotDir.equals(Pos.SOUTH)) {
+				turnCostX += 3 * COST_TURN;
+			}
+			else {
+				turnCostX += 2 * COST_TURN;
+			}
+		}
+		
+		// think about Y axis
+		if ((mostNorth - robotY) * (mostSouth - robotY) >= 0) {
+			moveCost += max(abs(mostNorth - robotY), abs(mostSouth - robotY)) * COST_MOVE;
+			if (mostNorth != mostSouth) {
+				if (robotDir.equals(Pos.WEST) || robotDir.equals(Pos.EAST)) {
+					turnCostY += 1 * COST_TURN;
+				}
+				else if (robotDir.equals(Pos.NORTH) && mostNorth >= robotY 
+						|| robotDir.equals(Pos.SOUTH) && mostSouth <= robotY) {
+					turnCostY += 2 * COST_TURN;
+				}
+			}
+		}
+		else {
+			int stepNorth = abs(mostNorth - robotY);
+			int stepSouth = abs(mostSouth - robotY);
+			moveCost += (min(stepNorth, stepSouth) * 2 + max(stepNorth, stepSouth)) * COST_MOVE;
+			if (robotDir.equals(Pos.WEST) || robotDir.equals(Pos.EAST)) {
+				turnCostY += 3 * COST_TURN;
+			}
+			else {
+				turnCostY += 2 * COST_TURN;
+			}
+		}
+		
+		// return: 
+		// the estimate cost of cleaning all dirt from current state, 
+		// plus the real cost from initial state to the current state
+		return moveCost + min(turnCostX, turnCostY) 
+				+ state.getDirtSet().size() * COST_SUCK + state.getCost();
+	}
+	
 	public int[][] generateGrid(int gridSize, Pos robotPos, List<Pos> obstacleList, List<Pos> dirtList, String direction) {
 		this.robotInitPos = robotPos;
 		this.robotInitDir = direction;
@@ -75,8 +167,7 @@ public class RobotApp {
 				return BFS(algorithm, grid);
 			}
 			else if (algorithm == 3) {
-				// TODO
-				return null;
+				return AStar(algorithm, grid);
 			}
 			else {
 				throw new IllegalArgumentException();
@@ -87,9 +178,82 @@ public class RobotApp {
 		}
 	}
 	
-	private List<State> DFS(int algorithm, int[][] grid) {
-		// TODO
-		return null;
+	private List<State> DFS(int algorithm, int[][] grid) throws CloneNotSupportedException {
+		// instantiate the initial state
+		State curState = new State(robotInitPos, dirtInitSet, robotInitDir, 0, State.ACTION_START, null);
+		curState.setTimestamp(System.currentTimeMillis());
+		if (curState.getDirtSet().isEmpty()) {
+			// the initial state is the final one
+			return traceBackPath(curState);
+		}
+		
+		LinkedList<State> fringe = new LinkedList<State>();
+		fringe.addFirst(curState);
+		Set<State> closed = new HashSet<State>();
+		
+		while ((curState = fringe.removeFirst()) != null) {
+			closed.add(curState);
+			updateGrid(curState, grid);
+			Pos curRobotPos = curState.getRobotPos();
+			
+			if (grid[curRobotPos.y][curRobotPos.x] == DIRTY) {
+				// action: SUCK
+				State nextState = (State) curState.clone();
+				nextState.getDirtSet().remove(curRobotPos);
+				nextState.setCost(nextState.getCost() + COST_SUCK)
+						.setActionName(State.ACTION_SUCK)
+						.setParentState(curState);
+				
+				if (!fringe.contains(nextState) && !closed.contains(nextState)) {
+					if (nextState.getDirtSet().isEmpty()) {
+						// reach the final state
+						nextState.setTimestamp(System.currentTimeMillis());
+						return traceBackPath(nextState);
+					}
+					else {
+						fringe.addFirst(nextState);
+					}
+				}
+			}
+			else {
+				// action: MOVE
+				Pos nextRobotPos = curRobotPos.getNeighbor(curState.getDirection());
+				if (nextRobotPos.x >= 1 && nextRobotPos.x < grid.length 
+						&& nextRobotPos.y >= 1 && nextRobotPos.y < grid.length 
+						&& grid[nextRobotPos.y][nextRobotPos.x] != OBSTACLE) {
+					State nextState = (State) curState.clone();
+					nextState.setRobotPos(nextRobotPos)
+							.setCost(nextState.getCost() + COST_MOVE)
+							.setActionName(State.ACTION_MOVE)
+							.setParentState(curState);
+					
+					if (!fringe.contains(nextState) && !closed.contains(nextState)) {
+						fringe.addFirst(nextState);
+					}
+				}
+				
+				// action: RIGHT
+				State nextState = (State) curState.clone();
+				nextState.turnRight()
+						.setCost(nextState.getCost() + COST_TURN)
+						.setActionName(State.ACTION_RIGHT)
+						.setParentState(curState);
+				if (!fringe.contains(nextState) && !closed.contains(nextState)) {
+					fringe.addFirst(nextState);
+				}
+				
+				// action: LEFT
+				nextState = (State) curState.clone();
+				nextState.turnLeft()
+						.setCost(nextState.getCost() + COST_TURN)
+						.setActionName(State.ACTION_LEFT)
+						.setParentState(curState);
+				if (!fringe.contains(nextState) && !closed.contains(nextState)) {
+					fringe.addFirst(nextState);
+				}
+			}
+		} // end of while
+		throw new IllegalStateException("Not possible");
 	}
 	
 	private List<State> BFS(int algorithm, int[][] grid) throws CloneNotSupportedException {
@@ -114,7 +278,7 @@ public class RobotApp {
 				// action: SUCK
 				State nextState = (State) curState.clone();
 				nextState.getDirtSet().remove(curRobotPos);
-				nextState.setCost(nextState.getCost() + State.COST_SUCK)
+				nextState.setCost(nextState.getCost() + COST_SUCK)
 						.setActionName(State.ACTION_SUCK)
 						.setParentState(curState);
 				
@@ -137,7 +301,7 @@ public class RobotApp {
 						&& grid[nextRobotPos.y][nextRobotPos.x] != OBSTACLE) {
 					State nextState = (State) curState.clone();
 					nextState.setRobotPos(nextRobotPos)
-							.setCost(nextState.getCost() + State.COST_MOVE)
+							.setCost(nextState.getCost() + COST_MOVE)
 							.setActionName(State.ACTION_MOVE)
 							.setParentState(curState);
 					
@@ -149,7 +313,7 @@ public class RobotApp {
 				// action: RIGHT
 				State nextState = (State) curState.clone();
 				nextState.turnRight()
-						.setCost(nextState.getCost() + State.COST_RIGHT)
+						.setCost(nextState.getCost() + COST_TURN)
 						.setActionName(State.ACTION_RIGHT)
 						.setParentState(curState);
 				if (!fringe.contains(nextState) && !closed.contains(nextState)) {
@@ -159,7 +323,7 @@ public class RobotApp {
 				// action: LEFT
 				nextState = (State) curState.clone();
 				nextState.turnLeft()
-						.setCost(nextState.getCost() + State.COST_LEFT)
+						.setCost(nextState.getCost() + COST_TURN)
 						.setActionName(State.ACTION_LEFT)
 						.setParentState(curState);
 				if (!fringe.contains(nextState) && !closed.contains(nextState)) {
@@ -167,6 +331,93 @@ public class RobotApp {
 				}
 			}
 		} // end of while
+		throw new IllegalStateException("Not possible");
+	}
+	
+	public List<State> AStar(int algorithm, int[][] grid) throws CloneNotSupportedException {
+		// instantiate the initial state
+		State curState = new State(robotInitPos, dirtInitSet, robotInitDir, 0, State.ACTION_START, null);
+		curState.setTimestamp(System.currentTimeMillis());
+		curState.setHeuristicValue(h(curState));
+		if (curState.getDirtSet().isEmpty()) {
+			// the initial state is the final one
+			return traceBackPath(curState);
+		}
+		
+		Queue<State> fringe = new PriorityQueue<State>(new Comparator<State>() {
+			
+			public int compare(State state1, State state2) {
+				return state1.getHeuristicValue() - state2.getHeuristicValue();
+			};
+		});
+		fringe.offer(curState);
+		Set<State> closed = new HashSet<State>();
+		
+		while ((curState = fringe.poll()) != null) {
+			closed.add(curState);
+			updateGrid(curState, grid);
+			Pos curRobotPos = curState.getRobotPos();
+			
+			// action: SUCK
+			if (grid[curRobotPos.y][curRobotPos.x] == DIRTY) {
+				State nextState = (State) curState.clone();
+				nextState.getDirtSet().remove(curRobotPos);
+				nextState.setCost(nextState.getCost() + COST_SUCK)
+						.setActionName(State.ACTION_SUCK)
+						.setParentState(curState)
+						.setHeuristicValue(h(nextState));
+				
+				if (!fringe.contains(nextState) && !closed.contains(nextState)) {
+					if (nextState.getDirtSet().isEmpty()) {
+						// reach the final state
+						nextState.setTimestamp(System.currentTimeMillis());
+						return traceBackPath(nextState);
+					}
+					else {
+						fringe.offer(nextState);
+					}
+				}
+			}
+
+			// action: MOVE
+			Pos nextRobotPos = curRobotPos.getNeighbor(curState.getDirection());
+			if (nextRobotPos.x >= 1 && nextRobotPos.x < grid.length 
+					&& nextRobotPos.y >= 1 && nextRobotPos.y < grid.length 
+					&& grid[nextRobotPos.y][nextRobotPos.x] != OBSTACLE) {
+				State nextState = (State) curState.clone();
+				nextState.setRobotPos(nextRobotPos)
+						.setCost(nextState.getCost() + COST_MOVE)
+						.setActionName(State.ACTION_MOVE)
+						.setParentState(curState)
+						.setHeuristicValue(h(nextState));
+				
+				if (!fringe.contains(nextState) && !closed.contains(nextState)) {
+					fringe.offer(nextState);
+				}
+			}
+			
+			// action: RIGHT
+			State nextState = (State) curState.clone();
+			nextState.turnRight()
+					.setCost(nextState.getCost() + COST_TURN)
+					.setActionName(State.ACTION_RIGHT)
+					.setParentState(curState)
+					.setHeuristicValue(h(nextState));
+			if (!fringe.contains(nextState) && !closed.contains(nextState)) {
+				fringe.offer(nextState);
+			}
+			
+			// action: LEFT
+			nextState = (State) curState.clone();
+			nextState.turnLeft()
+					.setCost(nextState.getCost() + COST_TURN)
+					.setActionName(State.ACTION_LEFT)
+					.setParentState(curState)
+					.setHeuristicValue(h(nextState));
+			if (!fringe.contains(nextState) && !closed.contains(nextState)) {
+				fringe.offer(nextState);
+			}
+		}
 		throw new IllegalStateException("Not possible");
 	}
 	
@@ -196,7 +447,7 @@ public class RobotApp {
 		
 		RobotApp app = new RobotApp();
 		int[][] grid = app.generateGrid(4, new Pos(4, 3), obstacleList, dirtList, Pos.WEST);
-		List<State> path = app.search(2, grid);
+		List<State> path = app.search(3, grid);
 		app.printSolution(path);
 	}
 	
