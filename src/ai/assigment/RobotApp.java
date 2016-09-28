@@ -16,8 +16,8 @@ import java.util.Set;
 
 /**
  * TODO consistent!!!
- * TODO variable for storing initial state
  * TODO is it okay to tweak unblinded search? 
+ * TODO user data input
  * 
  * @author sunhe, myan
  * @date Sep 22, 2016
@@ -38,6 +38,11 @@ public class RobotApp {
 	private Set<Pos> initDirtSet;			// a set of initial positions of dirt
 	
 	public int[][] generateGrid(int gridSize, Pos robotPos, List<Pos> obstacleList, List<Pos> dirtList, String direction) {
+		if (!direction.equals(Pos.NORTH) && !direction.equals(Pos.EAST) 
+				&& !direction.equals(Pos.SOUTH) && !direction.equals(Pos.WEST)) {
+			throw new IllegalArgumentException("invalid direction, see Pos.NORTH, etc");
+		}
+		
 		this.robotInitPos = robotPos;
 		this.robotInitDir = direction;
 		initDirtSet = new HashSet<Pos>(dirtList);
