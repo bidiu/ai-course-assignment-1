@@ -1,8 +1,8 @@
 package ai.assigment;
 
+import static java.lang.Math.abs;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static java.lang.Math.abs;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -167,7 +167,7 @@ public class RobotApp {
 		}
 		
 		// return the estimate cost of cleaning all dirt from the current state
-		return moveCost + min(turnCostX, turnCostY) 
+		return moveCost + max(turnCostX, turnCostY) 
 				+ state.getDirtSet().size() * COST_SUCK;
 	}
 	
@@ -192,8 +192,8 @@ public class RobotApp {
 			updateGrid(curState, grid);
 			Pos curRobotPos = curState.getRobotPos();
 			
+			// action: SUCK
 			if (grid[curRobotPos.y][curRobotPos.x] == DIRTY) {
-				// action: SUCK
 				State nextState = (State) curState.clone();
 				nextState.getDirtSet().remove(curRobotPos);
 				nextState.setCost(nextState.getCost() + COST_SUCK)
@@ -211,42 +211,41 @@ public class RobotApp {
 					}
 				}
 			}
-			else {
-				// action: MOVE
-				Pos nextRobotPos = curRobotPos.getNeighbor(curState.getDirection());
-				if (nextRobotPos.x >= 1 && nextRobotPos.x < grid.length 
-						&& nextRobotPos.y >= 1 && nextRobotPos.y < grid.length 
-						&& grid[nextRobotPos.y][nextRobotPos.x] != OBSTACLE) {
-					State nextState = (State) curState.clone();
-					nextState.setRobotPos(nextRobotPos)
-							.setCost(nextState.getCost() + COST_MOVE)
-							.setActionName(State.ACTION_MOVE)
-							.setParentState(curState);
-					
-					if (!fringe.contains(nextState) && !closed.contains(nextState)) {
-						fringe.addFirst(nextState);
-					}
-				}
-				
-				// action: RIGHT
+			
+			// action: MOVE
+			Pos nextRobotPos = curRobotPos.getNeighbor(curState.getDirection());
+			if (nextRobotPos.x >= 1 && nextRobotPos.x < grid.length 
+					&& nextRobotPos.y >= 1 && nextRobotPos.y < grid.length 
+					&& grid[nextRobotPos.y][nextRobotPos.x] != OBSTACLE) {
 				State nextState = (State) curState.clone();
-				nextState.turnRight()
-						.setCost(nextState.getCost() + COST_TURN)
-						.setActionName(State.ACTION_RIGHT)
+				nextState.setRobotPos(nextRobotPos)
+						.setCost(nextState.getCost() + COST_MOVE)
+						.setActionName(State.ACTION_MOVE)
 						.setParentState(curState);
-				if (!fringe.contains(nextState) && !closed.contains(nextState)) {
-					fringe.addFirst(nextState);
-				}
 				
-				// action: LEFT
-				nextState = (State) curState.clone();
-				nextState.turnLeft()
-						.setCost(nextState.getCost() + COST_TURN)
-						.setActionName(State.ACTION_LEFT)
-						.setParentState(curState);
 				if (!fringe.contains(nextState) && !closed.contains(nextState)) {
 					fringe.addFirst(nextState);
 				}
+			}
+			
+			// action: RIGHT
+			State nextState = (State) curState.clone();
+			nextState.turnRight()
+					.setCost(nextState.getCost() + COST_TURN)
+					.setActionName(State.ACTION_RIGHT)
+					.setParentState(curState);
+			if (!fringe.contains(nextState) && !closed.contains(nextState)) {
+				fringe.addFirst(nextState);
+			}
+			
+			// action: LEFT
+			nextState = (State) curState.clone();
+			nextState.turnLeft()
+					.setCost(nextState.getCost() + COST_TURN)
+					.setActionName(State.ACTION_LEFT)
+					.setParentState(curState);
+			if (!fringe.contains(nextState) && !closed.contains(nextState)) {
+				fringe.addFirst(nextState);
 			}
 		} // end of while
 		throw new IllegalStateException("Not possible");
@@ -273,8 +272,8 @@ public class RobotApp {
 			updateGrid(curState, grid);
 			Pos curRobotPos = curState.getRobotPos();
 			
+			// action: SUCK
 			if (grid[curRobotPos.y][curRobotPos.x] == DIRTY) {
-				// action: SUCK
 				State nextState = (State) curState.clone();
 				nextState.getDirtSet().remove(curRobotPos);
 				nextState.setCost(nextState.getCost() + COST_SUCK)
@@ -292,42 +291,41 @@ public class RobotApp {
 					}
 				}
 			}
-			else {
-				// action: MOVE
-				Pos nextRobotPos = curRobotPos.getNeighbor(curState.getDirection());
-				if (nextRobotPos.x >= 1 && nextRobotPos.x < grid.length 
-						&& nextRobotPos.y >= 1 && nextRobotPos.y < grid.length 
-						&& grid[nextRobotPos.y][nextRobotPos.x] != OBSTACLE) {
-					State nextState = (State) curState.clone();
-					nextState.setRobotPos(nextRobotPos)
-							.setCost(nextState.getCost() + COST_MOVE)
-							.setActionName(State.ACTION_MOVE)
-							.setParentState(curState);
-					
-					if (!fringe.contains(nextState) && !closed.contains(nextState)) {
-						fringe.offer(nextState);
-					}
-				}
-				
-				// action: RIGHT
+			
+			// action: MOVE
+			Pos nextRobotPos = curRobotPos.getNeighbor(curState.getDirection());
+			if (nextRobotPos.x >= 1 && nextRobotPos.x < grid.length 
+					&& nextRobotPos.y >= 1 && nextRobotPos.y < grid.length 
+					&& grid[nextRobotPos.y][nextRobotPos.x] != OBSTACLE) {
 				State nextState = (State) curState.clone();
-				nextState.turnRight()
-						.setCost(nextState.getCost() + COST_TURN)
-						.setActionName(State.ACTION_RIGHT)
+				nextState.setRobotPos(nextRobotPos)
+						.setCost(nextState.getCost() + COST_MOVE)
+						.setActionName(State.ACTION_MOVE)
 						.setParentState(curState);
-				if (!fringe.contains(nextState) && !closed.contains(nextState)) {
-					fringe.offer(nextState);
-				}
 				
-				// action: LEFT
-				nextState = (State) curState.clone();
-				nextState.turnLeft()
-						.setCost(nextState.getCost() + COST_TURN)
-						.setActionName(State.ACTION_LEFT)
-						.setParentState(curState);
 				if (!fringe.contains(nextState) && !closed.contains(nextState)) {
 					fringe.offer(nextState);
 				}
+			}
+			
+			// action: RIGHT
+			State nextState = (State) curState.clone();
+			nextState.turnRight()
+					.setCost(nextState.getCost() + COST_TURN)
+					.setActionName(State.ACTION_RIGHT)
+					.setParentState(curState);
+			if (!fringe.contains(nextState) && !closed.contains(nextState)) {
+				fringe.offer(nextState);
+			}
+			
+			// action: LEFT
+			nextState = (State) curState.clone();
+			nextState.turnLeft()
+					.setCost(nextState.getCost() + COST_TURN)
+					.setActionName(State.ACTION_LEFT)
+					.setParentState(curState);
+			if (!fringe.contains(nextState) && !closed.contains(nextState)) {
+				fringe.offer(nextState);
 			}
 		} // end of while
 		throw new IllegalStateException("Not possible");
