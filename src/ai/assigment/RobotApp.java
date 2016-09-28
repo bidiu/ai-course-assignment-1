@@ -15,7 +15,6 @@ import java.util.Queue;
 import java.util.Set;
 
 /**
- * TODO depth
  * TODO consistent!!!
  * TODO variable for storing initial state
  * TODO is it okay to tweak unblinded search? 
@@ -88,8 +87,7 @@ public class RobotApp {
 	}
 	
 	/**
-	 * the heuristic function, 
-	 * and it should be consistent.
+	 * the heuristic function
 	 */
 	private int h(State state) {
 		int robotX = state.getRobotPos().x;
@@ -449,6 +447,7 @@ public class RobotApp {
 		}
 		System.out.println();
 		System.out.println("total cost: " + finalState.getCost());
+		System.out.println("Depth: " + path.size());
 		System.out.println("Time: " + (finalState.getTimestamp() - initState.getTimestamp()) + " ms");
 	}
 	
