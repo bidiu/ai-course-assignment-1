@@ -92,7 +92,8 @@ public class RobotApp {
 	}
 	
 	/**
-	 * the heuristic function
+	 * the heuristic function, 
+	 * and it should be consistent.
 	 */
 	private int h(State state) {
 		int robotX = state.getRobotPos().x;
@@ -474,7 +475,7 @@ public class RobotApp {
 		
 		RobotApp app = new RobotApp();
 		int[][] grid = app.generateGrid(4, new Pos(4, 3), obstacleList, dirtList, Pos.WEST);
-		List<State> path = app.search(1, grid);
+		List<State> path = app.search(3, grid);
 		app.printSolution(path);
 	}
 	
