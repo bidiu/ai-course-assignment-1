@@ -168,7 +168,7 @@ public class RobotApp {
 		
 		// return the estimate cost of cleaning all dirt from the current state
 		return moveCost + min(turnCostX, turnCostY) 
-				+ state.getDirtSet().size() * COST_SUCK + state.getCost();
+				+ state.getDirtSet().size() * COST_SUCK;
 	}
 	
 	/**
@@ -476,7 +476,7 @@ public class RobotApp {
 		
 		RobotApp app = new RobotApp();
 		int[][] grid = app.generateGrid(4, new Pos(4, 3), obstacleList, dirtList, Pos.WEST);
-		List<State> path = app.search(3, grid);
+		List<State> path = app.search(1, grid);
 		app.printSolution(path);
 	}
 	
