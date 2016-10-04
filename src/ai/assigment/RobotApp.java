@@ -480,18 +480,25 @@ public class RobotApp {
         List<Pos> obstacleList = new ArrayList<Pos>();
 		System.out.println("Please give me the number of obstacle(s).");
 		int numOfObstacles = scanner.nextInt();
-		System.out.println("Please give successively the positions of the obstacle(s) by giving first x then y.");
-		for (int i = 1; i <= numOfObstacles; i++) {
-			obstacleList.add(new Pos(scanner.nextInt(), scanner.nextInt()));
+		if (numOfObstacles > 0) {
+			System.out.println("Please give successively the positions of the obstacle(s) by giving first x then y.");
+			for (int i = 1; i <= numOfObstacles; i++) {
+				obstacleList.add(new Pos(scanner.nextInt(), scanner.nextInt()));
+			}
 		}
 		
 		List<Pos> dirtList = new ArrayList<Pos>();
 		System.out.println("Please give the initial number of dirt(s).");
 		int numOfdirt = scanner.nextInt();
-		System.out.println("Please give successively the positions of the dirt(s) by giving first x then y.");
-		for (int i = 1; i <= numOfdirt; i++) {
-			dirtList.add(new Pos(scanner.nextInt(), scanner.nextInt()));
+		if (numOfdirt > 0) {
+			System.out.println("Please give successively the positions of the dirt(s) by giving first x then y.");
+			for (int i = 1; i <= numOfdirt; i++) {
+				dirtList.add(new Pos(scanner.nextInt(), scanner.nextInt()));
+			}
 		}
+		
+		System.out.println("Please give the algorithm to execute.(1. DFS, 2. BFS, 3. A*)");
+		int algorithm = scanner.nextInt();
 		
 		RobotApp app = new RobotApp();
 		// here, generate grid
@@ -516,10 +523,10 @@ public class RobotApp {
 			}
 			System.out.println();
 		}
-		System.out.println("\n'N', 'E','S', or 'W' is robot's direction; '#' is obstacle; '@' is dirty.\n");
+		System.out.println("\n'N', 'E','S', or 'W' is robot's direction; '#' is obstacle; '@' is dirty; '.' is clean\n");
 		
 		// here, start searching
-		List<State> path = app.search(2, grid);
+		List<State> path = app.search(algorithm, grid);
 		app.printSolution(path);
 		
 		scanner.close();
