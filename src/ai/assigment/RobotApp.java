@@ -12,13 +12,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
+import java.util.Scanner;
 import java.util.Set;
 
 /**
- * TODO consistent!!!
- * TODO is it okay to tweak unblinded search? 
- * TODO user data input
- * 
  * @author sunhe, myan
  * @date Sep 22, 2016
  */
@@ -461,22 +458,71 @@ public class RobotApp {
 	 * @author sunhe, myan
 	 * @date Sep 22, 2016
 	 */
-	public static void main(String[] args) throws CloneNotSupportedException {
-		List<Pos> obstacleList = new ArrayList<Pos>();
-		obstacleList.add(new Pos(2, 2));
-		obstacleList.add(new Pos(2, 3));
-		obstacleList.add(new Pos(3, 2));
+	public static void main(String[] args) {
+		Scanner scanner = new Scanner(System.in);
+
+		System.out.println("Please give the size of the grid.");
+		int gridsize = scanner.nextInt();
+		
+		System.out.println("Please give the initial position of the robot by giving x first then y.");
+		int x = scanner.nextInt();
+		int y = scanner.nextInt();
+		System.out.println("Please give the initial direction of the robot (exact string: \"North\", \"East\", \"South\", or \"West\")");
+		scanner.nextLine();
+		String direction = scanner.nextLine();
+		if (!direction.equals(Pos.NORTH) && !direction.equals(Pos.EAST) 
+				&& !direction.equals(Pos.SOUTH) && !direction.equals(Pos.WEST)) {
+			System.err.println("Invalid direction: " + direction);
+			scanner.close();
+			return;
+		}
+		
+        List<Pos> obstacleList = new ArrayList<Pos>();
+		System.out.println("Please give me the number of obstacle(s).");
+		int numOfObstacles = scanner.nextInt();
+		System.out.println("Please give successively the positions of the obstacle(s) by giving first x then y.");
+		for (int i = 1; i <= numOfObstacles; i++) {
+			obstacleList.add(new Pos(scanner.nextInt(), scanner.nextInt()));
+		}
 		
 		List<Pos> dirtList = new ArrayList<Pos>();
-		dirtList.add(new Pos(1, 2));
-		dirtList.add(new Pos(2, 1));
-		dirtList.add(new Pos(2, 4));
-		dirtList.add(new Pos(3, 3));
+		System.out.println("Please give the initial number of dirt(s).");
+		int numOfdirt = scanner.nextInt();
+		System.out.println("Please give successively the positions of the dirt(s) by giving first x then y.");
+		for (int i = 1; i <= numOfdirt; i++) {
+			dirtList.add(new Pos(scanner.nextInt(), scanner.nextInt()));
+		}
 		
 		RobotApp app = new RobotApp();
-		int[][] grid = app.generateGrid(4, new Pos(4, 3), obstacleList, dirtList, Pos.WEST);
-		List<State> path = app.search(3, grid);
+		// here, generate grid
+		int[][] grid = app.generateGrid(gridsize, new Pos(x, y), obstacleList, dirtList, direction);
+		System.out.println("\nThe grid looks like: ");
+		for (int i = 1; i <= gridsize; i++) {
+			for (int j = 1; j <= gridsize; j++) {
+				if (i == y && j == x) {
+					System.out.print(direction.charAt(0));
+					continue;
+				}
+				switch (grid[i][j]) {
+				case CLEAN:
+					System.out.print(".");
+					break;
+				case DIRTY:
+					System.out.print("@");
+					break;
+				case OBSTACLE:
+					System.out.print("#");
+				}
+			}
+			System.out.println();
+		}
+		System.out.println("\n'N', 'E','S', or 'W' is robot's direction; '#' is obstacle; '@' is dirty.\n");
+		
+		// here, start searching
+		List<State> path = app.search(2, grid);
 		app.printSolution(path);
+		
+		scanner.close();
 	}
 	
 }
