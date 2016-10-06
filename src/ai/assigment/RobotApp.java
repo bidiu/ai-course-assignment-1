@@ -464,7 +464,7 @@ public class RobotApp {
 		System.out.println("Please give the size of the grid.");
 		int gridsize = scanner.nextInt();
 		
-		System.out.println("Please give the initial position of the robot by giving x first then y.");
+		System.out.println("Please give the initial position of the robot by giving x first then y (such as: \"1 1\").");
 		int x = scanner.nextInt();
 		int y = scanner.nextInt();
 		System.out.println("Please give the initial direction of the robot (exact string: \"North\", \"East\", \"South\", or \"West\")");
@@ -481,7 +481,7 @@ public class RobotApp {
 		System.out.println("Please give me the number of obstacle(s).");
 		int numOfObstacles = scanner.nextInt();
 		if (numOfObstacles > 0) {
-			System.out.println("Please give successively the positions of the obstacle(s) by giving first x then y.");
+			System.out.println("Please give successively the positions of the obstacle(s) by giving first x then y (such as: \"1 1 2 2\").");
 			for (int i = 1; i <= numOfObstacles; i++) {
 				obstacleList.add(new Pos(scanner.nextInt(), scanner.nextInt()));
 			}
@@ -491,7 +491,7 @@ public class RobotApp {
 		System.out.println("Please give the initial number of dirt(s).");
 		int numOfdirt = scanner.nextInt();
 		if (numOfdirt > 0) {
-			System.out.println("Please give successively the positions of the dirt(s) by giving first x then y.");
+			System.out.println("Please give successively the positions of the dirt(s) by giving first x then y (such as: \"1 1 2 2\").");
 			for (int i = 1; i <= numOfdirt; i++) {
 				dirtList.add(new Pos(scanner.nextInt(), scanner.nextInt()));
 			}
